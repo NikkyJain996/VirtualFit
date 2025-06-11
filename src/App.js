@@ -1,23 +1,22 @@
+```jsx
+// src/App.js
 import React, { useState, Suspense } from 'react';
-import { Canvas, useLoader } from '@react-three/fiber';
-import { OrbitControls, useGLTF } from '@react-three/drei';
-import { TextureLoader, Color } from 'three';
+import { Canvas } from '@react-three/fiber';
+import { useGLTF, OrbitControls, useTexture } from '@react-three/drei';
+import { Color } from 'three';
 
 function Avatar({ url, scale, skinColor }) {
   const gltf = useGLTF(url);
-
   gltf.scene.traverse((child) => {
     if (child.isMesh && child.material) {
       child.material.color = new Color(skinColor);
     }
   });
-
   return <primitive object={gltf.scene} scale={scale} />;
 }
 
 function ClothingPlane({ imageUrl }) {
-  const texture = useLoader(TextureLoader, imageUrl);
-
+  const texture = useTexture(imageUrl);
   return (
     <mesh position={[1.5, 0.5, 0]}>
       <planeGeometry args={[1, 1]} />
@@ -28,22 +27,18 @@ function ClothingPlane({ imageUrl }) {
 
 export default function App() {
   const [gender, setGender] = useState('male');
-  const [height, setHeight] = useState(1);
-  const [width, setWidth] = useState(1);
+  const [dimensions, setDimensions] = useState({ height: 1, width: 1 });
   const [skinColor, setSkinColor] = useState('#ffffff');
   const [imageDataUrl, setImageDataUrl] = useState(null);
 
-  // ✅ Working GLB URLs from CDN
   const modelURL =
     gender === 'male'
-      ? 'https://cdn.jsdelivr.net/gh/KhronosGroup/glTF-Sample-Models@master/2.0/AnimatedMorphSphere/glTF-Binary/AnimatedMorphSphere.glb'
-      : 'https://cdn.jsdelivr.net/gh/KhronosGroup/glTF-Sample-Models@master/2.0/CesiumMan/glTF-Binary/CesiumMan.glb';
+      ? 'https://cdn.jsdelivr.net/gh/KhronosGroup/glTF-Sample-Models@master/2.0/CesiumMan/glTF-Binary/CesiumMan.glb'
+      : 'https://cdn.jsdelivr.net/gh/KhronosGroup/glTF-Sample-Models@master/2.0/BrainStem/glTF-Binary/BrainStem.glb'; // fallback female model
 
-  // ✅ File input image loader
   const handleFile = (e) => {
     const file = e.target.files[0];
     if (!file) return;
-
     const reader = new FileReader();
     reader.onload = () => setImageDataUrl(reader.result);
     reader.readAsDataURL(file);
@@ -52,65 +47,67 @@ export default function App() {
   return (
     <div style={{ padding: 20, fontFamily: 'Arial, sans-serif' }}>
       <h2>Virtual Try-On</h2>
-
       <div style={{ marginBottom: 20 }}>
         <label>
           Gender:
-          <select value={gender} onChange={e => setGender(e.target.value)} style={{ marginLeft: 10 }}>
+          <select
+            value={gender}
+            onChange={(e) => setGender(e.target.value)}
+            style={{ marginLeft: 10 }}
+          >
             <option value="male">Male</option>
             <option value="female">Female</option>
           </select>
         </label>
-
-        <br /><br />
-
+        <br />
         <label>
-          Height Scale:
+          Height Scale: {dimensions.height.toFixed(2)}
           <input
             type="range"
             min="0.5"
             max="2"
             step="0.01"
-            value={height}
-            onChange={e => setHeight(parseFloat(e.target.value))}
+            value={dimensions.height}
+            onChange={(e) =>
+              setDimensions((d) => ({ ...d, height: parseFloat(e.target.value) }))
+            }
             style={{ marginLeft: 10 }}
           />
-          {height.toFixed(2)}
         </label>
-
-        <br /><br />
-
+        <br />
         <label>
-          Width Scale:
+          Width Scale: {dimensions.width.toFixed(2)}
           <input
             type="range"
             min="0.5"
             max="2"
             step="0.01"
-            value={width}
-            onChange={e => setWidth(parseFloat(e.target.value))}
+            value={dimensions.width}
+            onChange={(e) =>
+              setDimensions((d) => ({ ...d, width: parseFloat(e.target.value) }))
+            }
             style={{ marginLeft: 10 }}
           />
-          {width.toFixed(2)}
         </label>
-
-        <br /><br />
-
+        <br />
         <label>
           Skin Tone:
           <input
             type="color"
             value={skinColor}
-            onChange={e => setSkinColor(e.target.value)}
+            onChange={(e) => setSkinColor(e.target.value)}
             style={{ marginLeft: 10 }}
           />
         </label>
-
-        <br /><br />
-
+        <br />
         <label>
           Upload Clothing Image:
-          <input type="file" accept="image/*" onChange={handleFile} style={{ marginLeft: 10 }} />
+          <input
+            type="file"
+            accept="image/*"
+            onChange={handleFile}
+            style={{ marginLeft: 10 }}
+          />
         </label>
       </div>
 
@@ -119,12 +116,16 @@ export default function App() {
           <ambientLight intensity={0.5} />
           <directionalLight position={[5, 5, 5]} />
           <Suspense fallback={null}>
-            <Avatar url={modelURL} scale={[width, height, width]} skinColor={skinColor} />
+            <Avatar
+              url={modelURL}
+              scale={[dimensions.width, dimensions.height, dimensions.width]}
+              skinColor={skinColor}
+            />
             {imageDataUrl && <ClothingPlane imageUrl={imageDataUrl} />}
           </Suspense>
           <OrbitControls />
         </Canvas>
       </div>
     </div>
-  );
 }
+```
