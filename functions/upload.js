@@ -1,32 +1,54 @@
-## 🖥️ Backend: Netlify Function `functions/upload.js`
-```js
-const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
-
-// Multer setup (in-memory)
-const storage = multer.memoryStorage();
-const upload = multer({ storage });
+// functions/upload.js
+// Netlify Function to handle image upload via busboy
+const Busboy = require('busboy');
 
 exports.handler = async (event, context) => {
-  return new Promise((resolve, reject) => {
-    upload.single('item')({
-      headers: event.headers,
-      body: Buffer.from(event.body, 'base64'),
-      isBase64: true
-    }, {}, err => {
-      if (err) return reject(err);
-
-      const file = event.body; // simplified: use a real parser
-      const filename = Date.now() + path.extname(event.headers['content-type']);
-      const uploadDir = path.join(__dirname, '../public/uploads');
-      fs.writeFileSync(path.join(uploadDir, filename), file, 'base64');
-
-      resolve({
-        statusCode: 200,
-        body: JSON.stringify({ url: `/uploads/${filename}` })
+  if (event.httpMethod !== 'POST') {
+    return { statusCode: 405, body: 'Method Not Allowed' };
+  }
+  try {
+    // Parse multipart form data using busboy
+    const parseMultipartForm = (event) => {
+      return new Promise((resolve, reject) => {
+        const bb = Busboy({ headers: event.headers });
+        const fields = { file: [] };
+        bb.on('file', (name, file, info) => {
+          let chunks = [];
+          file.on('data', (data) => {
+            chunks.push(data);
+          });
+          file.on('end', () => {
+            const content = Buffer.concat(chunks);
+            fields[name].push({
+              filename: info.filename,
+              type: info.mimeType,
+              content: content
+            });
+          });
+        });
+        bb.on('finish', () => resolve(fields));
+        bb.on('error', err => reject(err));
+        // event.body is base64-encoded
+        bb.end(Buffer.from(event.body, 'base64'));
       });
-    });
-  });
+    };
+
+    const fields = await parseMultipartForm(event);
+    if (!fields || !fields.file || fields.file.length === 0) {
+      throw new Error('No file uploaded');
+    }
+    // Take first uploaded file
+    const file = fields.file[0];
+    // Return the file data as JSON (base64 content)
+    return {
+      statusCode: 200,
+      body: JSON.stringify({
+        filename: file.filename,
+        contentType: file.type,
+        data: file.content.toString('base64')
+      })
+    };
+  } catch (err) {
+    return { statusCode: 400, body: `Upload error: ${err.message}` };
+  }
 };
-```
