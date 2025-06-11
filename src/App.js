@@ -1,4 +1,3 @@
-```jsx
 // src/App.js
 import React, { useState, Suspense } from 'react';
 import { Canvas } from '@react-three/fiber';
@@ -34,7 +33,7 @@ export default function App() {
   const modelURL =
     gender === 'male'
       ? 'https://cdn.jsdelivr.net/gh/KhronosGroup/glTF-Sample-Models@master/2.0/CesiumMan/glTF-Binary/CesiumMan.glb'
-      : 'https://cdn.jsdelivr.net/gh/KhronosGroup/glTF-Sample-Models@master/2.0/BrainStem/glTF-Binary/BrainStem.glb'; // fallback female model
+      : 'https://cdn.jsdelivr.net/gh/KhronosGroup/glTF-Sample-Models@master/2.0/BrainStem/glTF-Binary/BrainStem.glb';
 
   const handleFile = (e) => {
     const file = e.target.files[0];
@@ -127,5 +126,5 @@ export default function App() {
         </Canvas>
       </div>
     </div>
+  );
 }
-```
