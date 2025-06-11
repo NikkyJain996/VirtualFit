@@ -1,5 +1,6 @@
 [build]
-  publish = "public"
+  command   = "npm install && npm run build"
+  publish   = "build"
   functions = "functions"
 [dev]
   functions = "functions"
