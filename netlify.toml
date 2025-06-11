@@ -1,12 +1,6 @@
-## ⚙️ Netlify Configuration (`netlify.toml`)
 
-Create a file named `netlify.toml` at the project root with exactly the following content **(no markdown, comments, or extra lines)**:
-
-```toml
 [build]
   publish = "public"
   functions = "functions"
-
 [dev]
   functions = "functions"
-```
