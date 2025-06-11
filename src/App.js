@@ -1,76 +1,99 @@
-## 🖼️ Frontend: `src/App.js`
-```jsx
-import React, { useRef, useState, Suspense, useEffect } from 'react';
-import { Canvas } from '@react-three/fiber';
-import { OrbitControls } from '@react-three/drei';
-import * as THREE from 'three';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
+// src/App.js
+import React, { useState } from 'react';
+import { Canvas, useLoader } from '@react-three/fiber';
+import { useGLTF } from '@react-three/drei';
+import { TextureLoader, Color } from 'three';
+
+function Avatar({ url, scale, skinColor }) {
+  // Load the GLB model (must allow cross-origin loading)
+  const gltf = useGLTF(url, true);
+  // Apply skin color by traversing meshes
+  gltf.scene.traverse((child) => {
+    if (child.isMesh && child.material) {
+      child.material.color = new Color(skinColor);
+    }
+  });
+  return <primitive object={gltf.scene} scale={scale} />;
+}
+
+function ClothingPlane({ imageUrl }) {
+  // Load texture from base64 data URL
+  const texture = useLoader(TextureLoader, imageUrl);
+  return (
+    <mesh position={[1.5, 0.5, 0]}>
+      <planeGeometry args={[1, 1]} />
+      <meshStandardMaterial map={texture} transparent />
+    </mesh>
+  );
+}
 
 export default function App() {
-  const [data, setData] = useState({
-    gender: 'female', faceShape: 'oval', skinTone: '#f2d7c4',
-    hairStyle: 'straight', hairLength: 'medium',
-    height: 170, chest: 90, waist: 70, hips: 95
-  });
-  const [texture, setTexture] = useState(null);
+  const [gender, setGender] = useState('male');
+  const [height, setHeight] = useState(1);
+  const [width, setWidth] = useState(1);
+  const [skinColor, setSkinColor] = useState('#ffffff');
+  const [fileData, setFileData] = useState(null);
 
-  function AvatarModel({ info, textureMap }) {
-    const gltf = useLoader(GLTFLoader, `/models/${info.gender}.glb`);
-    const ref = useRef();
-    useEffect(() => {
-      if (!ref.current) return;
-      const scale = info.height / 170;
-      ref.current.scale.set(scale, scale, scale);
-      if (textureMap) {
-        ref.current.traverse(child => {
-          if (child.isMesh && child.name === 'ClothingMesh') {
-            child.material.map = textureMap;
-            child.material.needsUpdate = true;
-          }
-        });
-      }
-    }, [info, textureMap]);
-    return <primitive ref={ref} object={gltf.scene} />;
-  }
+  const maleURL = '/models/male.glb';
+  const femaleURL = '/models/female.glb';
+  const modelURL = gender === 'male' ? maleURL : femaleURL;
 
-  async function handleUpload(e) {
+  // Handle file input change and upload
+  const handleFile = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    const form = new FormData(); form.append('item', file);
-    const res = await fetch('/.netlify/functions/upload', { method: 'POST', body: form });
-    const { url } = await res.json();
-    setTexture(new THREE.TextureLoader().load(url));
-  }
-
-  function handleChange(evt) {
-    const { name, value } = evt.target;
-    setData(d => ({ ...d, [name]: value }));
-  }
+    const formData = new FormData();
+    formData.append('file', file);
+    const res = await fetch('/.netlify/functions/upload', {
+      method: 'POST',
+      body: formData
+    });
+    const result = await res.json();
+    // Construct data URL for texture loading
+    const dataUrl = `data:${result.contentType};base64,${result.data}`;
+    setFileData(dataUrl);
+  };
 
   return (
-    <div className="min-h-screen bg-gray-100 p-6">
-      <h1 className="text-5xl text-center mb-6">VirtualFit</h1>
-      <div className="grid md:grid-cols-2 gap-8">
-        <form className="bg-white p-6 rounded shadow space-y-4">
-          {/* Inputs for gender, measurements, face shape, skin tone, hair */}
-          {/* ... same as above, using handleChange ... */}
-          <div>
-            <label className="block font-medium">Upload Item</label>
-            <input type="file" accept="image/*" onChange={handleUpload} />
-          </div>
-        </form>
-        <div className="bg-white p-6 rounded shadow">
-          <Canvas camera={{ position: [0, 1.5, 3] }} style={{ height: 500 }}>
-            <ambientLight intensity={0.5} />
-            <directionalLight position={[5,5,5]} intensity={1} />
-            <Suspense fallback={null}>
-              <AvatarModel info={data} textureMap={texture} />
-            </Suspense>
-            <OrbitControls enablePan={false} />
-          </Canvas>
-        </div>
+    <div>
+      <div style={{ margin: '10px' }}>
+        <label>
+          Gender:
+          <select value={gender} onChange={e => setGender(e.target.value)}>
+            <option value="male">Male</option>
+            <option value="female">Female</option>
+          </select>
+        </label>
+        <label>
+          Height Scale:
+          <input type="range" min="0.5" max="2" step="0.01" value={height}
+                 onChange={e => setHeight(e.target.value)} />
+        </label>
+        <label>
+          Width Scale:
+          <input type="range" min="0.5" max="2" step="0.01" value={width}
+                 onChange={e => setWidth(e.target.value)} />
+        </label>
+        <label>
+          Skin Tone:
+          <input type="color" value={skinColor}
+                 onChange={e => setSkinColor(e.target.value)} />
+        </label>
+        <label>
+          Upload Clothing:
+          <input type="file" accept="image/*" onChange={handleFile} />
+        </label>
       </div>
+      <Canvas camera={{ position: [0, 1.5, 3] }}>
+        <ambientLight intensity={0.5} />
+        <directionalLight position={[5, 5, 5]} />
+        <Avatar 
+          url={modelURL} 
+          scale={[width, height, width]} 
+          skinColor={skinColor} 
+        />
+        {fileData && <ClothingPlane imageUrl={fileData} />}
+      </Canvas>
     </div>
   );
 }
-```
