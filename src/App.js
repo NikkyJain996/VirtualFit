@@ -1,7 +1,6 @@
-// src/App.js
 import React, { useState, Suspense } from 'react';
 import { Canvas, useLoader } from '@react-three/fiber';
-import { useGLTF, OrbitControls } from '@react-three/drei';
+import { OrbitControls, useGLTF } from '@react-three/drei';
 import { TextureLoader, Color } from 'three';
 
 function Avatar({ url, scale, skinColor }) {
@@ -32,42 +31,26 @@ export default function App() {
   const [height, setHeight] = useState(1);
   const [width, setWidth] = useState(1);
   const [skinColor, setSkinColor] = useState('#ffffff');
-  const [fileData, setFileData] = useState(null);
-  const [uploading, setUploading] = useState(false);
-  const [error, setError] = useState('');
+  const [imageDataUrl, setImageDataUrl] = useState(null);
 
-  const modelURL = gender === 'male' ? '/models/male.glb' : '/models/female.glb';
+  // ✅ Working GLB URLs from CDN
+  const modelURL =
+    gender === 'male'
+      ? 'https://cdn.jsdelivr.net/gh/KhronosGroup/glTF-Sample-Models@master/2.0/AnimatedMorphSphere/glTF-Binary/AnimatedMorphSphere.glb'
+      : 'https://cdn.jsdelivr.net/gh/KhronosGroup/glTF-Sample-Models@master/2.0/CesiumMan/glTF-Binary/CesiumMan.glb';
 
-  const handleFile = async (e) => {
+  // ✅ File input image loader
+  const handleFile = (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
-    setUploading(true);
-    setError('');
-
-    try {
-      const formData = new FormData();
-      formData.append('file', file);
-
-      const res = await fetch('/.netlify/functions/upload', {
-        method: 'POST',
-        body: formData
-      });
-
-      if (!res.ok) throw new Error('Upload failed');
-
-      const result = await res.json();
-      const dataUrl = `data:${result.contentType};base64,${result.data}`;
-      setFileData(dataUrl);
-    } catch (err) {
-      setError('Error uploading image. Please try again.');
-    } finally {
-      setUploading(false);
-    }
+    const reader = new FileReader();
+    reader.onload = () => setImageDataUrl(reader.result);
+    reader.readAsDataURL(file);
   };
 
   return (
-    <div style={{ fontFamily: 'sans-serif', padding: 20 }}>
+    <div style={{ padding: 20, fontFamily: 'Arial, sans-serif' }}>
       <h2>Virtual Try-On</h2>
 
       <div style={{ marginBottom: 20 }}>
@@ -92,7 +75,7 @@ export default function App() {
             onChange={e => setHeight(parseFloat(e.target.value))}
             style={{ marginLeft: 10 }}
           />
-          {height}
+          {height.toFixed(2)}
         </label>
 
         <br /><br />
@@ -108,7 +91,7 @@ export default function App() {
             onChange={e => setWidth(parseFloat(e.target.value))}
             style={{ marginLeft: 10 }}
           />
-          {width}
+          {width.toFixed(2)}
         </label>
 
         <br /><br />
@@ -127,16 +110,8 @@ export default function App() {
 
         <label>
           Upload Clothing Image:
-          <input
-            type="file"
-            accept="image/*"
-            onChange={handleFile}
-            style={{ marginLeft: 10 }}
-          />
+          <input type="file" accept="image/*" onChange={handleFile} style={{ marginLeft: 10 }} />
         </label>
-
-        {uploading && <p>Uploading...</p>}
-        {error && <p style={{ color: 'red' }}>{error}</p>}
       </div>
 
       <div style={{ height: '500px', border: '1px solid #ccc' }}>
@@ -144,12 +119,8 @@ export default function App() {
           <ambientLight intensity={0.5} />
           <directionalLight position={[5, 5, 5]} />
           <Suspense fallback={null}>
-            <Avatar
-              url={modelURL}
-              scale={[width, height, width]}
-              skinColor={skinColor}
-            />
-            {fileData && <ClothingPlane imageUrl={fileData} />}
+            <Avatar url={modelURL} scale={[width, height, width]} skinColor={skinColor} />
+            {imageDataUrl && <ClothingPlane imageUrl={imageDataUrl} />}
           </Suspense>
           <OrbitControls />
         </Canvas>
