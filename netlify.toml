@@ -1,0 +1,11 @@
+## ⚙️ Netlify Configuration (`netlify.toml`)
+```toml
+[build]
+  publish = "public"
+  functions = "functions"
+
+directory = "/public"
+
+[dev]
+  functions = "functions"
+```
