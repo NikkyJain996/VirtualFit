@@ -1,10 +1,9 @@
 [build]
-  command   = "npm run build"
-  publish   = "build"
+  command = "npm run build"
+  publish = "build"
   functions = "functions"
 
-# Point root redirects to index.html
 [[redirects]]
   from = "/*"
-  :contentReference[oaicite:1]{index=1}
+  to = "/index.html"
   status = 200
