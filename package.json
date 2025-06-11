@@ -1,15 +1,11 @@
 {
-  "name": "virtualfit-website",
-  "version": "1.0.0",
-  "description": "VirtualFit AI website",
-  "main": "index.js",
-  "scripts": {
-    "start": "node index.js"
-  },
-  "author": "VirtualFit Team",
-  "license": "MIT",
   "dependencies": {
     "react": "^18.2.0",
-    "next": "latest"
+    "react-dom": "^18.2.0",
+    "react-scripts": "^5.0.1",
+    "@react-three/fiber": "^8.0.0",
+    "@react-three/drei": "^9.0.0",
+    "three": "^0.158.0",
+    "multer": "^1.4.5-lts.1"
   }
 }
