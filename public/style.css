@@ -1,0 +1,35 @@
+/* Simple reset + global styles */
+html, body, #root {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+}
+body {
+  font-family: Arial, sans-serif;
+  background: #f5f5f5;
+}
+
+/* Style the control panel */
+.controls {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background: rgba(255,255,255,0.95);
+  padding: 12px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  max-width: 220px;
+  z-index: 10;
+}
+.controls label {
+  display: block;
+  margin-bottom: 8px;
+}
+.controls input[type="range"],
+.controls input[type="color"],
+.controls select,
+.controls input[type="file"] {
+  width: 100%;
+  margin-top: 4px;
+}
