@@ -1,4 +1,17 @@
-"scripts": {
-  "start": "react-scripts start",
-  "build": "react-scripts build"
+{
+  "name": "virtualfit",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0",
+    "@react-three/fiber": "^8.0.0",
+    "@react-three/drei": "^9.0.0",
+    "three": "^0.158.0",
+    "multer": "^1.4.5"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build"
+  }
 }
