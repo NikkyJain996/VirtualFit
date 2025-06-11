@@ -1,15 +1,16 @@
+// package.json
 {
-  "name": "virtualfit",
+  "name": "virtualfit-app",
   "version": "1.0.0",
   "private": true,
   "dependencies": {
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-scripts": "^5.0.1",
-    "@react-three/fiber": "^8.0.0",
-    "@react-three/drei": "^9.0.0",
-    "three": "^0.158.0",
-    "multer": "^1.4.5-lts.1"
+    "react-scripts": "5.0.1",
+    "three": "^0.177.0",
+    "@react-three/fiber": "^9.1.2",
+    "@react-three/drei": "^10.1.2",
+    "busboy": "^1.6.0"
   },
   "scripts": {
     "start": "react-scripts start",
